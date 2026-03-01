@@ -1,6 +1,6 @@
 # ATLAS: Advanced Thermodynamic Liquid & Aqueous Solver 
 
-**Version:** 1.0.2  
+**Version:** 1.0.3  
 **Author:** Petteri Vainikka, PhD  
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18826724.svg)](https://doi.org/10.5281/zenodo.18826724)
 

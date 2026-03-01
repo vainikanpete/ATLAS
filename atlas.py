@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 import os
 import sys
