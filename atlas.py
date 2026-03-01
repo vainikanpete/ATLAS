@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 import os
 import sys
@@ -64,6 +64,14 @@ matplotlib.rcParams['figure.dpi'] = 300
 matplotlib.rcParams['text.usetex'] = True
 plt.rc('text.latex', preamble=r'\usepackage{amsmath}')
 cmap = sns.color_palette("husl", 7)
+
+# Graceful fallback for Matplotlib < 3.6 (Python 3.7 support)
+try:
+    ATLAS_STYLE = 'seaborn-v0_8-white'
+    plt.style.use(ATLAS_STYLE)
+except OSError:
+    ATLAS_STYLE = 'seaborn-white'
+    plt.style.use(ATLAS_STYLE)
 
 # ---------------------------------------------------------
 # COSMO-RS Setup & Hotfixes
@@ -550,7 +558,7 @@ if args.tern:
     grid, T_real = solve_ternary_curve(mol_paths, thermo_props, disp_names, tol=args.tol)
     
     fig, ax = plt.subplots(figsize=(6, 5))
-    plt.style.use('seaborn-v0_8-white')
+    plt.style.use(ATLAS_STYLE)
     X = grid[:, 1] + 0.5 * grid[:, 2]
     Y = grid[:, 2] * (np.sqrt(3.0) / 2.0)
     
@@ -610,7 +618,7 @@ elif args.sol:
             print(f"\nData appended to {args.csv}")
 
         fig, ax = plt.subplots(figsize=(6, 4))
-        plt.style.use('seaborn-v0_8-white')
+        plt.style.use(ATLAS_STYLE)
         ax.axhline(ideal_sol, color='k', linestyle='-.', alpha=0.5, label='Ideal Solubility')
         ax.plot(x_solvent, y_solubility, color=cmap[0], lw=2.5, marker='o', label=f'Real Solubility')
         
@@ -689,7 +697,7 @@ else:
     if num_plots > 0:
         fig, axs = plt.subplots(1, num_plots, figsize=(4.5 * num_plots, 4.0))
         if num_plots == 1: axs = [axs] 
-        plt.style.use('seaborn-v0_8-white')
+        plt.style.use(ATLAS_STYLE)
         plt.suptitle(f"Phase Diagrams for {hba_disp}")
 
         for i in range(num_plots):

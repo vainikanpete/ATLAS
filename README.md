@@ -1,9 +1,8 @@
-# ATLAS: Advanced Thermodynamic Liquid & Aqueous Solver
+# ATLAS: Advanced Thermodynamic Liquid & Aqueous Solver 
 
-**Version:** 1.0.1  
+**Version:** 1.0.2  
 **Author:** Petteri Vainikka, PhD  
-
-[![DOI](https://zenodo.org/badge/1170020713.svg)](https://doi.org/10.5281/zenodo.18826723)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18826724.svg)](https://doi.org/10.5281/zenodo.18826724)
 
 **ATLAS** is a high-performance computational suite designed to evaluate complex thermodynamic phase equilibria and liquid-liquid extraction efficiencies. Built as a specialized routing engine upon the Conductor-like Screening Model for Real Solvents (COSMO-RS), ATLAS translates molecular-level screening charge densities ($\sigma$-profiles) directly into macroscopic thermodynamic properties.
 
