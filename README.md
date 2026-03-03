@@ -8,13 +8,6 @@
 
 It is specifically engineered for multicomponent systems, including Deep Eutectic Solvents (DES), and features custom numerical solvers for Solid-Liquid Equilibrium (SLE) phase boundaries, solubility curves, and Liquid-Liquid Extraction (LLE) partition coefficients.
 
-## Key Features
-
-* **Thread Thrashing Mitigation:** Forces single-core sequential execution on small combinatorial matrices, yielding order-of-magnitude speedups for iterative thermodynamic loops.
-* **Precision-Enforced Unity:** Implements dynamic "bit-nudging" to enforce strict mathematical unity (down to 1e-16) on mole fraction arrays, preventing C++ backend floating-point crashes.
-* **Miscibility Gap Masking:** Safely handles highly repulsive systems by applying an adaptive thermal floor to the extended Schröder-van Laar extrapolation.
-* **Liquid-Liquid Extraction Engine:** Bypasses solid-state data gaps by simulating infinite-dilution partitioning into multicomponent, structured DES environments to calculate logP and transfer free energies.
-
 ## Repository Structure
 
 To ensure maximum stability, ATLAS separates quantum screening profiles from the physical thermodynamic constants database.
@@ -73,6 +66,14 @@ Append results to a CSV file for programmatic batch screening:
 ```bash
 python atlas.py --sol --hba trifluoroacetic_acid --hbd thymol menthol --temp 298.15 --csv screening_results.csv
 ```
+
+## Other Features
+
+* **Thread Thrashing Mitigation:** Forces single-core sequential execution on small combinatorial matrices, yielding order-of-magnitude speedups for iterative thermodynamic loops.
+* **Precision-Enforced Unity:** Implements dynamic "bit-nudging" to enforce strict mathematical unity (down to 1e-16) on mole fraction arrays, preventing C++ backend floating-point crashes.
+* **Miscibility Gap Masking:** Safely handles highly repulsive systems by applying an adaptive thermal floor to the extended Schröder-van Laar extrapolation.
+* **Liquid-Liquid Extraction Engine:** Bypasses solid-state data gaps by simulating infinite-dilution partitioning into multicomponent, structured DES environments to calculate logP and transfer free energies.
+
 
 ## License
 ATLAS is distributed under the GNU General Public License v3.0 (GPLv3). See the `LICENSE` file for more information.
