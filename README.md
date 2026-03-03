@@ -1,6 +1,6 @@
 # ATLAS: Advanced Thermodynamic Liquid & Aqueous Solver 
 
-**Version:** 1.0.3  
+**Version:** 1.0.5  
 **Author:** Petteri Vainikka, PhD  
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18826724.svg)](https://doi.org/10.5281/zenodo.18826724)
 
@@ -40,7 +40,7 @@ cd ATLAS
 pip install -r requirements.txt
 ```
 
-*Note: ATLAS requires pre-computed `.orcacosmo` files generated via ORCA 6 to function.*
+*Note: ATLAS requires pre-computed `.orcacosmo` files generated via ORCA 6 (or equivalent) to function.*
 
 ## Usage Examples
 

@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 
-__version__ = "1.0.3"
+__version__ = "1.0.5"
 
 import os
 import sys
@@ -167,7 +167,7 @@ parser.add_argument('--db_file', type=str,
 
 args = parser.parse_args()
 
-molpath = args.orcacosmo_dir  # <--- Updated mapping
+molpath = args.orcacosmo_dir
 db_path = args.db_file
 fileext = '_c000.orcacosmo'
 
@@ -261,20 +261,23 @@ def enforce_unity(x_raw):
 # ---------------------------------------------------------
 # ENGINE 1: Binary SLE
 # ---------------------------------------------------------
-def get_ideal_curve(tm_a, hf_a, tm_b, hf_b):
-    x_a = np.linspace(0.01, 0.99, 99)
+def get_ideal_curve(tm_a, hf_a, tm_b, hf_b, x_array=None):
+    if x_array is not None:
+        x_a = x_array
+    else:
+        x_a = np.linspace(0.01, 0.99, 99)
     x_b = 1.0 - x_a
     T_ideal_a = 1 / (1/tm_a - (R/hf_a)*np.log(x_a))
     T_ideal_b = 1 / (1/tm_b - (R/hf_b)*np.log(x_b))
     T_ideal = np.maximum(T_ideal_a, T_ideal_b)
     eutectic_idx = np.argmin(T_ideal)
-    return x_a, T_ideal, x_a[eutectic_idx]
+    return x_a, T_ideal, x_a[eutectic_idx], T_ideal[eutectic_idx]
 
 def solve_real_curve(hba_path, hbd_path, tm_hba, hf_hba, tm_hbd, hf_hbd, hba_disp, hbd_disp, max_iter=40, tol=0.1):
     x_hba = np.linspace(0.05, 0.95, 20) 
     x_hbd = 1.0 - x_hba
     print(f"\n--- Starting Iterations for {hba_disp} + {hbd_disp} ---")
-    _, T_guess, _ = get_ideal_curve(tm_hba, hf_hba, tm_hbd, hf_hbd)
+    _, T_guess, _, _ = get_ideal_curve(tm_hba, hf_hba, tm_hbd, hf_hbd)
     T_guess = np.interp(x_hba, np.linspace(0.01, 0.99, 99), T_guess)
     
     for iteration in range(max_iter):
@@ -304,12 +307,12 @@ def solve_real_curve(hba_path, hbd_path, tm_hba, hf_hba, tm_hbd, hf_hbd, hba_dis
         if max_diff < tol:
             print(f"  -> SUCCESS: Converged!\n")
             T_safe[T_safe <= (T_MIN + 0.1)] = np.nan 
-            return x_hba, T_safe
+            return x_hba, T_safe, np.exp(lng_hba), np.exp(lng_hbd)
         T_guess = T_safe 
         
     print(f"  -> WARNING: Hit max iterations. Final Max ΔT: {max_diff:.4f} K\n")
     T_guess[T_guess <= (T_MIN + 0.1)] = np.nan 
-    return x_hba, T_guess
+    return x_hba, T_guess, np.exp(lng_hba), np.exp(lng_hbd)
 
 # ---------------------------------------------------------
 # ENGINE 2: Ternary SLE
@@ -686,12 +689,43 @@ else:
             print(f"\n[SKIPPED] >> {hbd_disp} >> Missing DB entry or ORCA file!")
             continue
 
-        x_id, T_id, eut_id = get_ideal_curve(tm_hba, hf_hba, tm_hbd, hf_hbd)
-        results_ideal.append((x_id, T_id, eut_id))
+        x_id, T_id, eut_id_x, eut_id_T = get_ideal_curve(tm_hba, hf_hba, tm_hbd, hf_hbd)
+        results_ideal.append((x_id, T_id, eut_id_x))
         
-        x_real, T_real = solve_real_curve(hba_file, hbd_file, tm_hba, hf_hba, tm_hbd, hf_hbd, hba_disp, hbd_disp, tol=args.tol)
+        x_real, T_real, gamma_hba, gamma_hbd = solve_real_curve(hba_file, hbd_file, tm_hba, hf_hba, tm_hbd, hf_hbd, hba_disp, hbd_disp, tol=args.tol)
         results_real.append((x_real, T_real))
         successful_hbds.append(hbd_disp)
+
+        # --- TERMINAL PRINTOUT & CSV EXPORT ---
+        valid_idx = np.where(~np.isnan(T_real))[0]
+        if len(valid_idx) > 0:
+            eut_real_idx = valid_idx[np.argmin(T_real[valid_idx])]
+            T_e_real = T_real[eut_real_idx]
+            x_e_real = x_real[eut_real_idx]
+            gamma_hba_e = gamma_hba[eut_real_idx]
+            gamma_hbd_e = gamma_hbd[eut_real_idx]
+            delta_T = T_e_real - eut_id_T
+            
+            print(f"\n--- Eutectic Summary: {hba_disp} + {hbd_disp} ---")
+            print(f"  -> Ideal Eutectic: T = {eut_id_T:.2f} K at x_HBA = {eut_id_x:.4f}")
+            print(f"  -> Real Eutectic : T = {T_e_real:.2f} K at x_HBA = {x_e_real:.4f}")
+            print(f"  -> Eutectic Depth (ΔTe): {delta_T:.2f} K")
+            print(f"  -> Activity Coeffs at Te: γ_HBA = {gamma_hba_e:.4f}, γ_HBD = {gamma_hbd_e:.4f}\n")
+        else:
+            eut_real_idx = None
+            print(f"\n--- Eutectic Summary: {hba_disp} + {hbd_disp} ---")
+            print("  -> WARNING: No valid liquidus points found (miscibility gap or all below T_MIN).\n")
+
+        if args.csv:
+            _, T_id_matched, _, _ = get_ideal_curve(tm_hba, hf_hba, tm_hbd, hf_hbd, x_array=x_real)
+            header = ['System', 'x_HBA', 'x_HBD', 'T_ideal_K', 'T_real_K', 'gamma_HBA', 'gamma_HBD', 'Note']
+            rows = []
+            for i in range(len(x_real)):
+                note = "Eutectic Minimum" if (eut_real_idx is not None and i == eut_real_idx) else ""
+                rows.append([f"{hba_disp} + {hbd_disp}", x_real[i], 1.0 - x_real[i], T_id_matched[i], T_real[i], gamma_hba[i], gamma_hbd[i], note])
+            
+            write_csv(args.csv, header, rows)
+            print(f"  -> Phase diagram exported to CSV: {args.csv}\n")
 
     num_plots = len(successful_hbds)
     if num_plots > 0:
@@ -701,7 +735,7 @@ else:
         plt.suptitle(f"Phase Diagrams for {hba_disp}")
 
         for i in range(num_plots):
-            x_id, T_id, eut_id = results_ideal[i]
+            x_id, T_id, eut_id_x = results_ideal[i]
             x_real, T_real = results_real[i]
             hbd_name = successful_hbds[i]
             
@@ -711,7 +745,7 @@ else:
             
             axs[i].axhspan(285, 298, alpha=0.35, color='skyblue', label='Room Temp (285-298 K)' if i==0 else "")
             axs[i].plot(x_id, T_id, c='k', linestyle='-.', alpha=0.55, label='Ideal SLE' if i==0 else "")
-            axs[i].axvline(eut_id, ls='--', alpha=0.55, c=cmap[1], label='Ideal Eutectic' if i==0 else "")
+            axs[i].axvline(eut_id_x, ls='--', alpha=0.55, c=cmap[1], label='Ideal Eutectic' if i==0 else "")
             axs[i].plot(x_real, T_real, c=cmap[i*2], lw=2.25, label=hbd_name)
             
             axs[i].set_xlim(0.00, 1.00)
