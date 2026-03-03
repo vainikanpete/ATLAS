@@ -64,7 +64,7 @@ python atlas.py --hba thymol --hbd menthol
 Generate high-resolution liquidus contours across a discrete two-dimensional simplex grid for a 3-component system:
 
 ```bash
-python atlas.py --tern --hba thymol --hbd menthol camphor
+python atlas.py --tern --hba thymol --hbd menthol h2o
 ```
 
 ### 4. High-Throughput Batch Output
