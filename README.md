@@ -28,7 +28,7 @@ ATLAS/
 Clone the repository and install the required dependencies (including the TUHH openCOSMO-RS backend directly from GitHub):
 
 ```bash
-git clone [https://github.com/yourusername/ATLAS.git](https://github.com/yourusername/ATLAS.git)
+git clone [https://github.com/vainikanpete/ATLAS.git](https://github.com/vainkanpete/ATLAS.git)
 cd ATLAS
 pip install -r requirements.txt
 ```
