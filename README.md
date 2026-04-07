@@ -118,25 +118,8 @@ If you use ATLAS in your research, please cite and pay your respects to the foll
 **openCOSMO-RS**
 
 > Gerlach, T., Müller, S., de Castilla, A. G., & Smirnova, I. (2022). An open source COSMO-RS implementation and parameterization supporting the efficient implementation of multiple segment descriptors. *Fluid Phase Equilibria*, 560, 113472. doi:10.1016/j.fluid.2022.113472
+
 > GitHub: [TUHH-TVT/openCOSMO-RS\_py](https://github.com/TUHH-TVT/openCOSMO-RS_py)
-
-That is an essential addition. Crediting the engine that actually generates the geometry is critical, especially since `xyzrender` is the backbone of your new 3D visualization capabilities.
-
-Here is the updated **References** section for your **README.md**. I have added the **xyzrender** citation and updated the formatting to match the other two.
-
-***
-
-## References
-
-If you use ATLAS in your research, please cite the following underlying technologies:
-
-**The ORCA Program System**
-> Neese, F. (2012). The ORCA program system. *WIRES Comput. Molec. Sci.*, 2(1), 73-78. doi:10.1002/wcms.81
-
-**openCOSMO-RS Implementation**
-> Gerlach, T., Müller, S., de Castilla, A. G., & Smirnova, I. (2022). An open source COSMO-RS implementation and parameterization supporting the efficient implementation of multiple segment descriptors. *Fluid Phase Equilibria*, 560, 113472. doi:10.1016/j.fluid.2022.113472
-
-> GitHub: [TUHH-TVT/openCOSMO-RS_py](https://github.com/TUHH-TVT/openCOSMO-RS_py)
 
 **xyzrender Visualization Engine**
 > Goodfellow, A.S., & Nguyen, B.N. (2026). Graph-Based Internal Coordinate Analysis for Transition State Characterization. *J. Chem. Theory Comput.* doi:10.1021/acs.jctc.5c02073
