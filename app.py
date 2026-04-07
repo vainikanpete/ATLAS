@@ -478,7 +478,7 @@ with tab5:
                     
                     ax.set_xlabel(r'Screening Charge Density, $\sigma$ ($e$/Å$^2$)')
                     ax.set_ylabel(r'Area, $P(\sigma)$ (Å$^2$)')
-                    ax.set_title(f"$\sigma$-Profile Fingerprint: {disp_name}")
+                    ax.set_title(rf"$\sigma$-Profile Fingerprint: {disp_name}")
                     ax.legend(frameon=True, fancybox=True, shadow=True, loc='upper right')
                     ax.grid(alpha=0.3)
                     
@@ -495,7 +495,7 @@ with tab5:
 # TAB 6: SIGMA-MAP
 # ------------------------------------------
 with tab6:
-    st.markdown("Generate a high-fidelity 3D Topological $\sigma$-Map directly from quantum segment data.")
+    st.markdown(r"Generate a high-fidelity 3D Topological $\sigma$-Map directly from quantum segment data.")
     with st.form("map_inputs"):
         map_mol = st.selectbox("Select Molecule", available_mols, index=0, key="map_mol")
         
@@ -512,7 +512,7 @@ with tab6:
                 self.hbd_cutoff = -0.0084
                 self.hba_cutoff = 0.0084
                 
-        run_map = st.form_submit_button("Generate 3D $\sigma$-Map")
+        run_map = st.form_submit_button(r"Generate 3D $\sigma$-Map")
         
     if run_map:
         if use_cloud and use_animate:
@@ -592,7 +592,7 @@ with tab7:
                         plt.style.use(ATLAS_STYLE)
                         ax.plot(grid_t, res['norm_bench'], color='gray', lw=2, linestyle='--', label=f"{b_disp} (Bench)")
                         ax.plot(grid_t, res['norm_target'], color='black', lw=2, label=f"{t_disp} (Target)")
-                        ax.fill_between(grid_t, res['intersection'], color='mediumpurple', alpha=0.4, label=f"ASIS Overlap ({res['Global_ASIS']:.1f}\%)")
+                        ax.fill_between(grid_t, res['intersection'], color='mediumpurple', alpha=0.4, label=rf"ASIS Overlap ({res['Global_ASIS']:.1f}\%)")
                         ax.set_xlim(-0.03, 0.03)
                         
                         ax.set_xlabel(r'Screening Charge Density, $\sigma$ ($e$/Å$^2$)')
@@ -614,7 +614,7 @@ with tab7:
 # TAB 8: READ ME / DOCUMENTATION
 # ------------------------------------------
 with tab8:
-    st.markdown("""
+    st.markdown(r"""
     ### Welcome to ATLAS
     **ATLAS (Advanced Thermodynamic Liquid & Aqueous Solver)** acts as an intelligent, high-performance routing engine, bridging the gap between quantum theory and applied laboratory screening.
 

@@ -870,7 +870,7 @@ def run_fingerprint_cli(args, thermo_db: dict) -> None:
     
     ax.set_xlabel(r'Screening Charge Density, $\sigma$ ($e$/Å$^2$)')
     ax.set_ylabel(r'Area, $P(\sigma)$ (Å$^2$)')
-    ax.set_title(f"$\sigma$-Profile Fingerprint: {disp_name}")
+    ax.set_title(rf"$\sigma$-Profile Fingerprint: {disp_name}")
     ax.legend(frameon=True, fancybox=True, shadow=True, loc='upper right')
     ax.grid(alpha=0.3)
     
@@ -927,7 +927,7 @@ def run_render_cli(args, thermo_db: dict) -> None:
         cbar = fig.colorbar(sc, ax=ax, orientation='horizontal', fraction=0.046, pad=0.04, aspect=40)
         cbar.set_label(r'Screening Charge Density, $\sigma$ ($e$/Å$^2$)', fontsize=14, labelpad=10)
         
-        ax.set_title(f"Thermodynamic $\sigma$-Map: {disp_name}", fontsize=20, pad=20, fontweight='bold')
+        ax.set_title(rf"Thermodynamic $\sigma$-Map: {disp_name}", fontsize=20, pad=20, fontweight='bold')
         ax.axis('off')
         
         plt.savefig(safe_fn, dpi=300, bbox_inches='tight', facecolor='white')
