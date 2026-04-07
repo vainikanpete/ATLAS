@@ -541,7 +541,7 @@ with tab6:
                     )
                     
                     if success and os.path.exists(out_file):
-                        st.image(out_file, use_container_width=True)
+                        st.image(out_file, width="stretch")
                         # Clean up
                         try: os.remove(out_file)
                         except: pass
