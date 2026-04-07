@@ -110,6 +110,10 @@ def apply_watermark(ax):
 # ==========================================
 st.set_page_config(page_title="ATLAS", page_icon="atlas.png", layout="wide")
 
+# --- THE SESSION TRIPWIRE ---
+if 'session_logged' not in st.session_state:
+    st.session_state.session_logged = True
+    log_event("session")
 # ==========================================
 # 2. MAIN UI & SIDEBAR
 # ==========================================
