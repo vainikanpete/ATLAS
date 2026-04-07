@@ -51,7 +51,7 @@ import matplotlib.image as mpimg
 import seaborn as sns
 import matplotlib
 from typing import List, Tuple, Dict, Optional, Any
-
+import tempfile
 
 # ---------------------------------------------------------
 # ATLAS Exceptions
@@ -117,31 +117,29 @@ ATLAS_QUOTES = [
     ("I swear by my life and my love of it that I will never live for the sake of another man, nor ask another man to live for mine.", "John Galt"),
     ("There are no evil thoughts except one: the refusal to think.", "Dagny Taggart"),
     ("I'm a simple man. I like simple orders and instructions.", "Petteri Vainikka"),
-    ("A rational process is a moral process.", "John Galt"),
-    ("I started my life with a single absolute: that the world was mine to shape in the image of my highest values and never to be given up to a lesser standard.", "John Galt"),
     ("Do not let your fire go out, spark by irreplaceable spark in the hopeless swamps of the not-quite, the not-yet, and the not-at-all.", "John Galt"),
     ("It is not advisable, James, to venture unsolicited opinions. You should spare yourself the embarrassing discovery of their exact value to your listener.", "Francisco d'Anconia"),
     ("Man? What is man? He's just a collection of chemicals with delusions of grandeur.", "Dr. Simon Pritchett"),
     ("Don't ever get angry at a man for stating the truth.", "Dagny Taggart"),
     ("You see, Dr. Stadler, people don't want to think. And the deeper they get into trouble, the less they want to think.", "Dr. Floyd Ferris"),
     ("Physics is like sex. Sure it may have some practical uses, but that's not why we do it.", "Richard Feynman"),
-    ("The worst guilt is to accept an undeserved guilt.", " Francisco d'Anconia"),
     ("I know poetry is not dead, nor genius lost; nor has Mammon gained power over either, to bind or slay: they will both assert their existence, their presence, their liberty and strength again one day.", "Jane Eyre"),
-    ("The nation which had once held the creed that greatness is achieved by production, is now told that it is achieved by squalor.", "Francisco d'Anconia"),
-    ("Guilt is a rope that wears thin.", "James Taggart to Lillian Rearden"),
     ("To arrive at a contradiction is to confess an error in one's thinking; to maintain a contradiction is to abdicate one's mind and to evict oneself from the realm of reality.", "John Galt"),
     ("Devotion to truth is the hallmark of morality; there is no greater, nobler, more heroic form of devotion than the act of a man who assumes the responsibility of thinking.", "John Galt"),
-    ("The man who lets a leader prescribe his course is a wreck being towed to the scrap heap.", "John Galt"),
     ("When I disagree with a rational man, I let reality be our final arbiter; if I am right, he will learn; if I am wrong, I will; one of us will win, but both will profit.", "John Galt"),
-    ("Force and mind are opposites; morality ends where a gun begins.", "John Galt"),
-    ("Achieving life is not the equivalent of avoiding death.", "John Galt"),
     ("Power-lust is a weed that grows only in the vacant lots of an abandoned mind.", "John Galt"),
-    ("There are two sides to every issue: one side is right and the other is wrong, but the middle is always evil.", "John Galt"),
     ("Live and act within the limit of your knowledge and keep expanding it to the limit of your life.", "John Galt"),
-    ("Never think of pain or danger or enemies a moment longer than is necessary to fight them.","John Galt"),
     ("Never, I said never, compare with experiment", "Magnus Bergh"),
     ("Theoretical chemistry has of course always been important and useful ... at least to theoretical chemists", "Sven Lidin"),
-    ("In this house, we OBEY the laws of thermodynamics!", "Homer Simpson")
+    ("In this house, we OBEY the laws of thermodynamics!", "Homer Simpson"),
+    ("Sie haben also recht gehabt, Sie Spitzbube.","Albert Einstein (letter to Wolfgang Pauli)"),
+    ("Computers are incredibly fast, accurate and stupid. Humans are incredibly slow, inaccurate and... also stupid.","Anonymous"),
+    ("Everything what mathematicians were saying for the last 50 years is slowly catching up with us.", "David van der Spoel"),
+    ("The first principle is that you must not fool yourself and you are the easiest person to fool.", "Richard Feynman"),
+    ("I would rather have questions that can't be answered than answers that can't be questioned.", "Richard Feynman"),
+    ("Man is unique not because he does science, and he is unique not because he does art, but because science and art equally are expressions of his marvellous plasticity of mind.", "Jacob Bronowski"),
+    ("Man masters nature not by force, but by understanding.", "Jacob Bronowski"),
+    ("There is no absolute knowledge. And those who claim it, whether they are scientists or dogmatists, open the door to tragedy.", "Jacob Bronowski") 
 ]
 
 # ---------------------------------------------------------
@@ -656,9 +654,12 @@ def render_publication_surface(elements: List[str], coords: np.ndarray, atom_sig
     except ImportError:
         return False
 
+    # --- CLOUD-SAFE PATH ROUTING ---
+    tmp_dir = tempfile.gettempdir()
     safe_prefix = disp_name.replace(' ', '_')
-    temp_dens = f"temp_{safe_prefix}_dens.cube"
-    temp_esp = f"temp_{safe_prefix}_esp.cube"
+    temp_dens = os.path.join(tmp_dir, f"temp_{safe_prefix}_dens.cube")
+    temp_esp = os.path.join(tmp_dir, f"temp_{safe_prefix}_esp.cube")
+       
     A_TO_BOHR = 1.8897259886
     canvas_size = 1200
     

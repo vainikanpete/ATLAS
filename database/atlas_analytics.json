@@ -1,0 +1,12 @@
+{
+    "sessions": 0,
+    "computations": {
+        "Binary": 0,
+        "Ternary": 0,
+        "Solubility": 1,
+        "logP": 34,
+        "Fingerprint": 1,
+        "SigmaMap": 2,
+        "ASIS": 1
+    }
+}
