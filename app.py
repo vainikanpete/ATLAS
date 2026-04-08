@@ -17,7 +17,7 @@ import base64
 import threading
 import json
 import streamlit as st
-
+import logging
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -104,6 +104,12 @@ def apply_watermark(ax):
     ax.text(0.5, 0.5, f"ATLAS v{__version__}\n© 2026 P. Vainikka", 
             transform=ax.transAxes, fontsize=26, color='gray', 
             alpha=0.2, ha='center', va='center', rotation=25, zorder=0, fontweight='bold')
+
+# ==========================================
+# 0.3 Remove logging issues from SL UI
+# ==========================================
+# Silence the harmless 'missing ScriptRunContext' log spam
+logging.getLogger('streamlit.runtime.scriptrunner_utils.script_run_context').setLevel(logging.ERROR)
 
 # ==========================================
 # 1. UI CONFIGURATION
