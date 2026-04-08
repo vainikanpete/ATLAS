@@ -159,9 +159,9 @@ except Exception as e:
     st.error(f"System Error: Cannot load database. {e}")
     st.stop()
 
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "Binary SLE", "Ternary SLE", "Solubility", "logP (Transfer)", 
-    "Sigma Fingerprint", "Sigma-Map", "ASIS Matcher", "Read Me"
+    "Sigma Fingerprint", "Sigma-Map", "ASIS Matcher", "Read Me", "Add Molecule"
 ])
 
 # ------------------------------------------
@@ -654,3 +654,93 @@ with tab8:
     **xyzrender Visualization Engine**
     > Goodfellow, A.S., & Nguyen, B.N. (2026). Graph-Based Internal Coordinate Analysis for Transition State Characterization. *J. Chem. Theory Comput.* doi:10.1021/acs.jctc.5c02073
     """)
+
+
+# ------------------------------------------
+# TAB 9: ADD MOLECULE
+# ------------------------------------------
+with tab9:
+    st.markdown("### Want *your* molecule(s) in ATLAS?")
+    st.markdown("""
+    The ATLAS database is constantly expanding. If you require specific compounds for your research, you can request them to be parameterized via quantum chemistry (ORCA) and added to the official public repository. 
+    """)
+    
+    st.divider()
+    
+    with st.form("molecule_request_form"):
+        st.markdown("**Submit a Parameterization Request**")
+        
+        c1, c2 = st.columns([3, 1])
+        mol_name = c1.text_input("Full Chemical Name", placeholder="e.g., L-Menthol")
+        mol_charge = c2.number_input("Formal Charge", value=0, step=1)
+        
+        smiles = st.text_input("Canonical SMILES", placeholder="e.g., CC1CCC(C(C1)O)C(C)C")
+        
+        st.markdown("##### Thermodynamic Constants (Optional but Recommended)")
+        st.markdown("*Note: Purely ionic components do not require exact melting thermodynamics. Leaving these at 0.0 restricts the compound to logP, ASIS, and Solubility engines only.*")
+        
+        c3, c4 = st.columns(2)
+        t_melt = c3.number_input("Melting Temperature, $T_{melt}$ (K)", value=0.0, step=0.1)
+        dh_fus = c4.number_input("Enthalpy of Fusion, $\Delta H_{fus}$ (kJ/mol)", value=0.0, step=0.1)
+        
+        submit_req = st.form_submit_button("Generate Request")
+        
+if submit_req:
+        # 1. Check for empty fields
+        if not mol_name or not smiles:
+            st.error("⚠️ Please provide at least the Chemical Name and Canonical SMILES.")
+        else:
+            # 2. Check the existing database
+            safe_name = mol_name.strip().lower().replace(' ', '_').replace('-', '_')
+            
+            if any(safe_name in mol for mol in available_mols):
+                st.warning(f"🛑 **Already Exists:** A molecule closely matching '{mol_name}' appears to already be in the ATLAS database. Please check the dropdown menus.")
+            else:
+                # 3. RDKit SMILES Sanity Check
+                smiles_is_valid = True
+                try:
+                    from rdkit import Chem
+                    mol = Chem.MolFromSmiles(smiles.strip())
+                    if mol is None:
+                        smiles_is_valid = False
+                except ImportError:
+                    pass # Bypass if RDKit fails to load on cloud
+                
+                if not smiles_is_valid:
+                    st.error("🛑 **Invalid SMILES:** The RDKit backend could not parse the provided string. Please check for syntax or valency errors.")
+                else:
+                    # 4. Generate the thing
+                    body_text = f"""ATLAS Parameterization Request:
+
+Name: {mol_name}
+Charge: {mol_charge}
+SMILES: {smiles}
+T_melt (K): {t_melt if t_melt > 0 else 'N/A'}
+dH_fus (kJ/mol): {dh_fus if dh_fus > 0 else 'N/A'}
+
+Additional Notes:
+"""
+                    st.success("✅ Valid SMILES detected. Request generated successfully!")
+                    
+                    target_email = "vainikanpete@gmail.com"
+                    
+                    st.markdown(f"**Step 1:** Copy the request data below.")
+                    st.code(body_text, language="text")
+                    
+                    st.markdown(f"**Step 2:** Email the data to the developer.")
+                    
+                    # We keep the mailto link, but ONLY for the subject line. 
+                    # This ensures it opens the email client without breaking.
+                    import urllib.parse
+                    safe_subject = urllib.parse.quote(f"ATLAS Molecule Request: {mol_name}")
+                    mailto_url = f"mailto:{target_email}?subject={safe_subject}"
+                    
+                    html_btn = f'''
+                    <a href="{mailto_url}" style="text-decoration:none;">
+                        <div style="background-color:#FF4B4B; color:white; padding:10px 20px; border-radius:5px; text-align:center; font-weight:bold; display:inline-block; margin-top:10px;">
+                            ✉️ Open Email Client
+                        </div>
+                    </a>
+                    '''
+                    st.markdown(html_btn, unsafe_allow_html=True)
+                    st.markdown("*Just paste the copied data into the body of the email!*")
