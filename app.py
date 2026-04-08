@@ -680,8 +680,8 @@ with tab9:
         st.markdown("*Note: Purely ionic components do not require exact melting thermodynamics. Leaving these at 0.0 restricts the compound to logP, ASIS, and Solubility engines only.*")
         
         c3, c4 = st.columns(2)
-        t_melt = c3.number_input("Melting Temperature, $T_{melt}$ (K)", value=0.0, step=0.1)
-        dh_fus = c4.number_input("Enthalpy of Fusion, $\Delta H_{fus}$ (kJ/mol)", value=0.0, step=0.1)
+        t_melt = c3.number_input(rf"Melting Temperature, $T_{melt}$ (K)", value=0.0, step=0.1)
+        dh_fus = c4.number_input(rf"Enthalpy of Fusion, $\Delta H_{fus}$ (kJ/mol)", value=0.0, step=0.1)
         
         submit_req = st.form_submit_button("Generate Request")
         
