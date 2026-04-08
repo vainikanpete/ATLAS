@@ -645,6 +645,9 @@ with tab8:
     
     Standard SLE models omit the heat capacity difference ($\Delta C_p$) between solid and liquid states and struggle to capture the complex speciation penalty of separating ion pairs in the melt. ATLAS faithfully computes and reports the unvarnished mathematical reality of the underlying quantum continuum models without arbitrary empirical fitting.
 
+    #### Further reading
+    For more details on the underlying openCOSMO-RS implementation, see the [official ORCA documentation](https://www.faccts.de/docs/orca/6.1/manual/contents/essentialelements/solvationmodels.html?q=openCOSMO&n=0#opencosmo-rs).
+
     ---
 
     #### References
@@ -655,11 +658,17 @@ with tab8:
     
     **openCOSMO-RS Implementation**
     > Gerlach, T., Müller, S., de Castilla, A. G., & Smirnova, I. (2022). An open source COSMO-RS implementation and parameterization supporting the efficient implementation of multiple segment descriptors. *Fluid Phase Equilibria*, 560, 113472. doi:10.1016/j.fluid.2022.113472
+
     > GitHub: [TUHH-TVT/openCOSMO-RS_py](https://github.com/TUHH-TVT/openCOSMO-RS_py)
     
     **xyzrender Visualization Engine**
     > Goodfellow, A.S., & Nguyen, B.N. (2026). Graph-Based Internal Coordinate Analysis for Transition State Characterization. *J. Chem. Theory Comput.* doi:10.1021/acs.jctc.5c02073
+
+    > GitHub: [aligfellow/xyzrender](https://github.com/aligfellow/xyzrender)
     """)
+
+
+
 
 
 # ------------------------------------------
