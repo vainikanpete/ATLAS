@@ -114,7 +114,7 @@ logging.getLogger('streamlit.runtime.scriptrunner_utils.script_run_context').set
 # ==========================================
 # 1. UI CONFIGURATION
 # ==========================================
-st.set_page_config(page_title="ATLAS", page_icon="atlas.png", layout="wide")
+st.set_page_config(page_title="ATLAS", page_icon="logo.png", layout="wide")
 
 # --- THE SESSION TRIPWIRE ---
 if 'session_logged' not in st.session_state:
