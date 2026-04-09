@@ -124,7 +124,7 @@ if 'session_logged' not in st.session_state:
 # 2. MAIN UI & SIDEBAR
 # ==========================================
 with st.sidebar:
-    try: st.image(os.path.join(BASE_DIR, "atlas.png"), width=120)
+    try: st.image(os.path.join(BASE_DIR, "logo.png"), width=120)
     except FileNotFoundError: pass
         
     st.markdown(f"## ATLAS v{__version__}")
