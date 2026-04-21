@@ -1063,7 +1063,7 @@ def run_binary_cli(args, thermo_db: dict, crs: Any, hba_file: str, hbd_files: Li
             axs[i].axhspan(285, 298, alpha=0.35, color='skyblue', label='Room Temp (285-298 K)' if i==0 else "")
             axs[i].plot(x_id, T_id, c='k', linestyle='-.', alpha=0.55, label='Ideal SLE' if i==0 else "")
             axs[i].axvline(eut_id_x, ls='--', alpha=0.55, c=cmap[1], label='Ideal Eutectic' if i==0 else "")
-            axs[i].plot(x_real, T_real, c=cmap[i*2], lw=2.25, label=hbd_name)
+            axs[i].plot(x_real, T_real, c=cmap[(i*2) % len(cmap)], lw=2.25, label=hbd_name)
             
             axs[i].set_xlim(0.00, 1.00)
             axs[i].set_ylim(min_T - y_buffer, max_T + y_buffer) 
