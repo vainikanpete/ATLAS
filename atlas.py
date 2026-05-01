@@ -11,7 +11,7 @@
 # (at your option) any later version.
 # ==============================================================================
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 import os
 import sys
@@ -92,7 +92,8 @@ except OSError:
 # ---------------------------------------------------------
 # COSMO-RS Setup & Hotfixes
 # ---------------------------------------------------------
-from opencosmorspy import COSMORS
+from opencosmorspy.parameterization import openCOSMORS24a
+from opencosmorspy.cosmors import COSMORS
 import opencosmorspy.molecules as mols
 
 def _patched_convert_element_symbols(atm_elmnt):
@@ -226,7 +227,7 @@ def solve_real_curve(crs: Any, hba_path: str, hbd_path: str, tm_hba: float, hf_h
         T_new_hba = 1 / (1/tm_hba - (R/hf_hba)*(np.log(x_hba) + lng_hba))
         T_new_hbd = 1 / (1/tm_hbd - (R/hf_hbd)*(np.log(x_hbd) + lng_hbd))
         T_raw = np.maximum(T_new_hba, T_new_hbd)
-      
+       
         # --- THE TRUST REGION CLAMP ---
         intended_step = relax_t * (T_raw - T_guess)
         clamped_step = np.clip(intended_step, -15.0, 15.0) 
@@ -434,8 +435,8 @@ def solve_solubility_curve(crs: Any, solute_path: str, solv_a_path: str, solv_b_
 # ---------------------------------------------------------
 # ENGINE 4: Partition Coefficient (logP) & Transfer dG
 # ---------------------------------------------------------
-def solve_logp_and_dg(crs: Any, solute_path: str, solv_a_path: str, solv_b_path: str, disp_names: List[str], T_sys: float) -> Tuple[float, float]:
-    print(f"\n--- Calculating logP and dG ({disp_names[1]} -> {disp_names[2]}) at {T_sys} K ---")
+def solve_logp_and_dg(crs: Any, solute_path: str, solv_a_path: str, solv_b_path: str, disp_names: List[str], T_sys: float, vol_q: Optional[float] = None, preset_ow: bool = False) -> Tuple[float, float, Optional[float], Optional[float]]:
+    print(f"\n--- Calculating partition thermodynamics ({disp_names[1]} -> {disp_names[2]}) at {T_sys} K ---")
     
     crs.clear_jobs()
     crs.clear_molecules()
@@ -455,19 +456,37 @@ def solve_logp_and_dg(crs: Any, solute_path: str, solv_a_path: str, solv_b_path:
     res_b = crs.calculate()
     lng_b = res_b['tot']['lng'][0, 0] 
 
-    dG_transfer = (R * T_sys * (lng_b - lng_a)) / 1000.0 
+    dG_x = (R * T_sys * (lng_b - lng_a)) / 1000.0 
     logP_x = (lng_a - lng_b) / np.log(10)
     
     print(f"  -> Solute ln(gamma) in {disp_names[1]}: {lng_a:.4f}")
     print(f"  -> Solute ln(gamma) in {disp_names[2]}: {lng_b:.4f}")
-    print(f"  -> ΔG ({disp_names[1]} -> {disp_names[2]}): {dG_transfer:.2f} kJ/mol")
-    print(f"  -> logP_x (Mole Fraction Base): {logP_x:.2f}\n")
-    return dG_transfer, logP_x
+    print(f"  -> Native dG_x (Transfer to {disp_names[2]}): {dG_x:.2f} kJ/mol")
+    print(f"  -> Native logP_x (mole-fraction basis): {logP_x:.2f}\n")
+
+    logP_c, dG_c = None, None
+    if preset_ow:
+        if abs(T_sys - 298.15) > 0.01:
+            print("  [WARNING] The --ow_298 preset assumes T = 298.15 K. Phase volumes deviate at other temperatures.")
+        print(f"  --- Applying Octanol/Water Preset (Vol Quotient = {vol_q}) ---")
+        
+    if vol_q is not None:
+        logP_c = logP_x - np.log10(vol_q)
+        dG_c = dG_x + (R * T_sys * np.log(vol_q)) / 1000.0
+        if not preset_ow:
+            print(f"  --- Concentration-Based Corrections (Vol Quotient = {vol_q}) ---")
+        print(f"  -> Derived dG_c (Transfer to {disp_names[2]}): {dG_c:.2f} kJ/mol")
+        print(f"  -> Derived logP_c (concentration basis): {logP_c:.2f}\n")
+    else:
+        print("  [INFO] Concentration-based correction not applied: phase molar-volume model not defined.")
+        print("  Reporting native logP_x only.\n")
+
+    return dG_x, logP_x, dG_c, logP_c
 
 # ---------------------------------------------------------
 # ENGINE 5: Extraction to Mixed DES (LLE)
 # ---------------------------------------------------------
-def solve_extraction(crs: Any, solute_path: str, water_path: str, des_a_path: str, des_b_path: str, disp_names: List[str], T_sys: float, des_ratio: List[float]) -> Tuple[float, float]:
+def solve_extraction(crs: Any, solute_path: str, water_path: str, des_a_path: str, des_b_path: str, disp_names: List[str], T_sys: float, des_ratio: List[float], vol_q: Optional[float] = None) -> Tuple[float, float, Optional[float], Optional[float]]:
     print(f"\n--- Extraction: {disp_names[0]} from {disp_names[1]} -> DES ({disp_names[2]} + {disp_names[3]}) at {T_sys} K ---")
     
     crs.clear_jobs()
@@ -495,14 +514,26 @@ def solve_extraction(crs: Any, solute_path: str, water_path: str, des_a_path: st
     res_des = crs.calculate()
     lng_des = res_des['tot']['lng'][0, 0]
 
-    dG_transfer = (R * T_sys * (lng_des - lng_w)) / 1000.0 
+    dG_x = (R * T_sys * (lng_des - lng_w)) / 1000.0 
     logP_x = (lng_w - lng_des) / np.log(10)
     
     print(f"  -> Solute ln(gamma) in {disp_names[1]}: {lng_w:.4f}")
     print(f"  -> Solute ln(gamma) in DES [{r1}:{r2}]: {lng_des:.4f}")
-    print(f"  -> ΔG (Transfer to DES): {dG_transfer:.2f} kJ/mol")
-    print(f"  -> Extraction logP_x:    {logP_x:.2f}\n")
-    return dG_transfer, logP_x
+    print(f"  -> Native dG_x (Transfer to DES): {dG_x:.2f} kJ/mol")
+    print(f"  -> Native Extraction logP_x (mole-fraction basis): {logP_x:.2f}\n")
+
+    logP_c, dG_c = None, None
+    if vol_q is not None:
+        logP_c = logP_x - np.log10(vol_q)
+        dG_c = dG_x + (R * T_sys * np.log(vol_q)) / 1000.0
+        print(f"  --- Concentration-Based Corrections (Vol Quotient = {vol_q}) ---")
+        print(f"  -> Derived dG_c (Transfer to DES): {dG_c:.2f} kJ/mol")
+        print(f"  -> Derived Extraction logP_c (concentration basis): {logP_c:.2f}\n")
+    else:
+        print("  [INFO] Concentration-based correction not applied: phase molar-volume model not defined.")
+        print("  Reporting native extraction logP_x only.\n")
+
+    return dG_x, logP_x, dG_c, logP_c
 
 # ---------------------------------------------------------
 # ENGINE 6: Molecular Fingerprint Scanner
@@ -659,7 +690,7 @@ def render_publication_surface(elements: List[str], coords: np.ndarray, atom_sig
     safe_prefix = disp_name.replace(' ', '_')
     temp_dens = os.path.join(tmp_dir, f"temp_{safe_prefix}_dens.cube")
     temp_esp = os.path.join(tmp_dir, f"temp_{safe_prefix}_esp.cube")
-       
+        
     A_TO_BOHR = 1.8897259886
     canvas_size = 1200
     
@@ -915,7 +946,7 @@ def run_render_cli(args, thermo_db: dict) -> None:
             if idx1 < len(coords_2d) and idx2 < len(coords_2d):
                 c1, c2 = coords_2d[idx1], coords_2d[idx2]
                 ax.plot([c1[0], c2[0]], [c1[1], c2[1]], color='dimgray', lw=4, zorder=1)
-           
+            
         norm = mcolors.TwoSlopeNorm(vmin=-0.015, vcenter=0.0, vmax=0.015)
         cmap = mcolors.LinearSegmentedColormap.from_list('sigma_cmap', ['royalblue', 'lightgray', 'crimson'])
         sc = ax.scatter(coords_2d[:, 0], coords_2d[:, 1], s=1200, c=atom_sigmas, cmap=cmap, norm=norm, edgecolors='black', linewidths=2.0, zorder=2)
@@ -923,7 +954,7 @@ def run_render_cli(args, thermo_db: dict) -> None:
         for i, el in enumerate(elements):
             text_color = 'white' if abs(atom_sigmas[i]) > 0.006 else 'black'
             ax.text(coords_2d[i, 0], coords_2d[i, 1], el, ha='center', va='center', fontsize=14, fontweight='bold', color=text_color, zorder=3)
-                   
+                    
         cbar = fig.colorbar(sc, ax=ax, orientation='horizontal', fraction=0.046, pad=0.04, aspect=40)
         cbar.set_label(r'Screening Charge Density, $\sigma$ ($e$/Å$^2$)', fontsize=14, labelpad=10)
         
@@ -1184,16 +1215,62 @@ def run_logp_cli(args, thermo_db: dict, crs: Any, hba_file: str, hbd_files: List
     if len(hbd_files) != 2:
         raise AtlasError("logP evaluation requires exactly 2 Solvents to transfer between.")
         
-    _, disp_a, _, _ = get_molecule_info(hbd_files[0], thermo_db)
-    _, disp_b, _, _ = get_molecule_info(hbd_files[1], thermo_db)
+    # Capture the raw file keys to enforce phase order for presets
+    key_a, disp_a, _, _ = get_molecule_info(hbd_files[0], thermo_db)
+    key_b, disp_b, _, _ = get_molecule_info(hbd_files[1], thermo_db)
     disp_names = [hba_disp, disp_a, disp_b]
-    dG_transfer, logP_x = solve_logp_and_dg(crs, hba_file, hbd_files[0], hbd_files[1], disp_names, T_sys=args.temp)
+    
+    # --- Strict Exclusivity & Bounds Checking ---
+    has_vol_q = args.vol_q is not None
+    has_mvols = args.mvol_a is not None or args.mvol_b is not None
+    has_mw_rho = any(v is not None for v in [args.mw_a, args.rho_a, args.mw_b, args.rho_b])
+    has_ow = getattr(args, 'ow_298', False)
+
+    if sum([has_vol_q, has_mvols, has_mw_rho, has_ow]) > 1:
+        raise AtlasError("Multiple volume correction schemes provided. Please choose only one.")
+
+    vol_q = None
+    if has_ow:
+        # Enforce strict phase order A -> B
+        if key_a.lower() not in {'water', 'h2o'} or key_b.lower() not in {'octanol', '1_octanol', 'n_octanol'}:
+            raise AtlasError(
+                "--ow_298 assumes Phase A = water and Phase B = octanol. "
+                "Use '--hbd water octanol' in that exact order, or provide --vol_q manually."
+            )
+        vol_q = 8.72
+    elif has_vol_q:
+        if args.vol_q <= 0: raise AtlasError("Volume quotient must be positive.")
+        vol_q = args.vol_q
+    elif has_mvols:
+        if args.mvol_a is None or args.mvol_b is None:
+            raise AtlasError("Both --mvol_a and --mvol_b must be provided.")
+        if args.mvol_a <= 0 or args.mvol_b <= 0:
+            raise AtlasError("Molar volumes must be positive.")
+        vol_q = args.mvol_b / args.mvol_a
+    elif has_mw_rho:
+        if not all(v is not None for v in [args.mw_a, args.rho_a, args.mw_b, args.rho_b]):
+            raise AtlasError("All four MW/Density values must be provided.")
+        if any(v <= 0 for v in [args.mw_a, args.rho_a, args.mw_b, args.rho_b]):
+            raise AtlasError("Molecular weights and densities must be positive.")
+        v_a = args.mw_a / args.rho_a
+        v_b = args.mw_b / args.rho_b
+        vol_q = v_b / v_a
+        
+    dG_x, logP_x, dG_c, logP_c = solve_logp_and_dg(
+        crs, hba_file, hbd_files[0], hbd_files[1], 
+        disp_names, T_sys=args.temp, vol_q=vol_q, preset_ow=has_ow
+    )
     
     if args.csv:
-        header = ['Solute', 'System', 'T_sys_K', 'dG_transfer_kJ_mol', 'logP_x']
+        header = ['Solute', 'System', 'T_sys_K', 'dG_x', 'logP_x', 'dG_c', 'logP_c']
         system_name = f"{disp_names[1]} -> {disp_names[2]}"
-        write_csv(args.csv, header, [[hba_disp, system_name, args.temp, dG_transfer, logP_x]])
-        print(f"\nData appended to {args.csv}")
+        
+        out_dG_c = dG_c if dG_c is not None else ''
+        out_logP_c = logP_c if logP_c is not None else ''
+        
+        write_csv(args.csv, header, [[hba_disp, system_name, args.temp, dG_x, logP_x, out_dG_c, out_logP_c]])
+        print(f"Data appended to {args.csv}")
+
 
 def run_extraction_cli(args, thermo_db: dict, crs: Any, hba_file: str, hbd_files: List[str], hba_key: str, hba_disp: str) -> None:
     if len(hbd_files) != 3:
@@ -1203,14 +1280,55 @@ def run_extraction_cli(args, thermo_db: dict, crs: Any, hba_file: str, hbd_files
     _, disp_des_a, _, _ = get_molecule_info(hbd_files[1], thermo_db)
     _, disp_des_b, _, _ = get_molecule_info(hbd_files[2], thermo_db)
     disp_names = [hba_disp, disp_w, disp_des_a, disp_des_b]
-    dG_transfer, logP_x = solve_extraction(crs, hba_file, hbd_files[0], hbd_files[1], hbd_files[2], disp_names, T_sys=args.temp, des_ratio=args.ratio)
+
+    # --- Volume correction handling ---
+    has_vol_q = args.vol_q is not None
+    has_mvols = args.mvol_a is not None or args.mvol_b is not None
+
+    if sum([has_vol_q, has_mvols]) > 1:
+        raise AtlasError("Multiple volume correction schemes provided. Please choose only one.")
+
+    vol_q = None
+
+    if has_vol_q:
+        if args.vol_q <= 0:
+            raise AtlasError("Volume quotient must be positive.")
+        vol_q = args.vol_q
+
+    elif has_mvols:
+        if args.mvol_a is None or args.mvol_b is None:
+            raise AtlasError("Both --mvol_a and --mvol_b must be provided.")
+        if args.mvol_a <= 0 or args.mvol_b <= 0:
+            raise AtlasError("Molar volumes must be positive.")
+        vol_q = args.mvol_b / args.mvol_a
+
+    dG_x, logP_x, dG_c, logP_c = solve_extraction(
+        crs,
+        hba_file,
+        hbd_files[0],
+        hbd_files[1],
+        hbd_files[2],
+        disp_names,
+        T_sys=args.temp,
+        des_ratio=args.ratio,
+        vol_q=vol_q
+    )
     
     if args.csv:
-        header = ['Solute', 'System', 'T_sys_K', 'DES_Ratio', 'dG_transfer_kJ_mol', 'logP_x']
+        header = ['Solute', 'System', 'T_sys_K', 'DES_Ratio', 'dG_x', 'logP_x', 'dG_c', 'logP_c']
         system_name = f"{disp_names[1]} -> DES[{disp_names[2]}:{disp_names[3]}]"
         ratio_str = f"{args.ratio[0]}:{args.ratio[1]}"
-        write_csv(args.csv, header, [[hba_disp, system_name, args.temp, ratio_str, dG_transfer, logP_x]])
+
+        out_dG_c = dG_c if dG_c is not None else ''
+        out_logP_c = logP_c if logP_c is not None else ''
+
+        write_csv(
+            args.csv,
+            header,
+            [[hba_disp, system_name, args.temp, ratio_str, dG_x, logP_x, out_dG_c, out_logP_c]]
+        )
         print(f"\nData appended to {args.csv}")
+
 
 # ---------------------------------------------------------
 # MAIN EXECUTION BLOCK (REFACTORED FOR SUBPARSERS)
@@ -1243,6 +1361,22 @@ def main():
         p.add_argument('--hbd_cutoff', type=float, default=-0.0084, help="Klamt H-Bond Donor threshold")
         p.add_argument('--hba_cutoff', type=float, default=0.0084, help="Klamt H-Bond Acceptor threshold")
 
+    def add_core_volume_args(p):
+        p.add_argument('--volume_quotient', '--vol_q', dest='vol_q', type=float, 
+                       help="Direct volume quotient (V_B / V_A)")
+        p.add_argument('--mvol_a', type=float, 
+                       help="Effective molar volume of Phase A (L/mol)")
+        p.add_argument('--mvol_b', type=float, 
+                       help="Effective molar volume of Phase B at the specified composition and temperature (L/mol)")
+
+    def add_pure_logp_volume_args(p):
+        p.add_argument('--ow_298', action='store_true', 
+                       help="Preset: Octanol/Water at 298.15 K (vol_q = 8.72)")
+        p.add_argument('--mw_a', type=float, help="Molecular weight of Phase A (g/mol)")
+        p.add_argument('--rho_a', type=float, help="Density of Phase A (g/L)")
+        p.add_argument('--mw_b', type=float, help="Molecular weight of Phase B (g/mol)")
+        p.add_argument('--rho_b', type=float, help="Density of Phase B (g/L)")
+
     # 3. Add `parents=[base_parser]` to EVERY subparser
     p_bin = subparsers.add_parser('binary', parents=[base_parser], help='Calculate Binary SLE phase diagram')
     p_bin.add_argument('--hba', type=str, required=True, help="Solute/HBA molecule")
@@ -1265,6 +1399,8 @@ def main():
     p_logp.add_argument('--hbd', nargs=2, type=str, required=True)
     p_logp.add_argument('--temp', type=float, default=298.15)
     p_logp.add_argument('--csv', type=str)
+    add_core_volume_args(p_logp)
+    add_pure_logp_volume_args(p_logp)
 
     p_ext = subparsers.add_parser('extract', parents=[base_parser], help='Calculate extraction logP to Mixed DES')
     p_ext.add_argument('--hba', type=str, required=True)
@@ -1272,6 +1408,7 @@ def main():
     p_ext.add_argument('--ratio', nargs=2, type=float, default=[1.0, 2.0])
     p_ext.add_argument('--temp', type=float, default=298.15)
     p_ext.add_argument('--csv', type=str)
+    add_core_volume_args(p_ext)
 
     p_fp = subparsers.add_parser('fingerprint', parents=[base_parser], help='Generate Sigma-Profile fingerprint')
     p_fp.add_argument('--mol', type=str, required=True, help="Molecule name to scan")
@@ -1322,7 +1459,7 @@ def main():
             run_match_cli(args, thermo_db)
             
         elif args.command in ['binary', 'ternary', 'solubility', 'logp', 'extract']:
-            crs = COSMORS(par='default_orca')
+            crs = COSMORS(par=openCOSMORS24a())
             crs.par.calculate_contact_statistics_molecule_properties = True
 
             hba_file = os.path.join(args.orcacosmo_dir, args.hba + '_c000.orcacosmo')
@@ -1346,6 +1483,7 @@ def main():
                 run_logp_cli(args, thermo_db, crs, hba_file, hbd_files, hba_key, hba_disp)
             elif args.command == 'extract':
                 run_extraction_cli(args, thermo_db, crs, hba_file, hbd_files, hba_key, hba_disp)
+
 
         if not args.silent:
             quote, speaker = random.choice(ATLAS_QUOTES)
