@@ -945,7 +945,7 @@ with tab5:
             key="ext_mvol_b"
         )
         ext_vol_q = ext_mvol_b / ext_mvol_a
-        st.caption(f"Computed $V_{target}$ / $V_{source}$ = {ext_vol_q:.6f}")
+        st.caption(f"Computed $V_{{target}}$ / $V_{{source}}$ = {ext_vol_q:.6f}")
 
     run_ext = st.button(
         "Compute Extraction Thermodynamics",
