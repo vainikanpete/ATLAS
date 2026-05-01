@@ -498,8 +498,8 @@ with tab3:
 with tab4:
     st.markdown("Calculate partition coefficients and transfer free energies.")
     st.caption(
-        "Native ATLAS output is mole-fraction based: log$P_{\chi}$ and $\Delta G_{\chi}$.\n\n"
-        "Optional phase-volume correction reports concentration-based log$P_{c}$ and $\Delta G_{c}$."
+        r"Native ATLAS output is mole-fraction based: log$P_{\chi}$ and $\Delta G_{\chi}$.\n\n"
+        r"Optional phase-volume correction reports concentration-based log$P_{c}$ and $\Delta G_{c}$."
     )
 
     c1, c2, c3 = st.columns(3)
@@ -552,9 +552,9 @@ with tab4:
     volume_model = st.radio(
         "Phase-volume model",
         [
-            "None: report native mole-fraction log$P_{\chi}$ only",
+            r"None: report native mole-fraction log$P_{\chi}$ only",
             "Preset: Water $\\rightarrow$ Octanol at 298.15 K",
-            "Direct volume quotient $V_{B}$ / $V_{A}$",
+            r"Direct volume quotient $V_{B}$ / $V_{A}$",
             "Effective molar volumes",
             "Molecular weights and densities"
         ],
@@ -601,7 +601,7 @@ with tab4:
             key="lp_mvol_b"
         )
         vol_q = mvol_b / mvol_a
-        st.caption(f"Computed $V_{B}$ / $V_{A}$ = {vol_q:.6f}")
+        st.caption(f"Computed $V_{{B}}$ / $V_{{A}}$ = {vol_q:.6f}")
 
     elif volume_model == "Molecular weights and densities":
         st.caption("Densities must be entered in $g/L$. The UI computes $V = MW / \\rho$.")
@@ -639,7 +639,7 @@ with tab4:
         v_a = mw_a / rho_a
         v_b = mw_b / rho_b
         vol_q = v_b / v_a
-        st.caption(f"Computed $V_{B}$ / $V_{A}$ = {vol_q:.6f}")
+        st.caption(f"Computed $V_{{B}}$ / $V_{{A}}$ = {vol_q:.6f}")
 
     run_logp = st.button(
         "Compute Partition Thermodynamics",
@@ -757,7 +757,7 @@ with tab4:
                             color='#9b59b6',
                             lw=2.5,
                             marker='s',
-                            label='log$P_{\chi}$'
+                            label=r'log$P_{\chi}$'
                         )
 
                         if any(v is not None for v in logP_c_values):
@@ -880,8 +880,8 @@ with tab4:
 with tab5:
     st.markdown("Calculate transfer/extraction thermodynamics from a source phase into a mixed target phase.")
     st.caption(
-        "Native ATLAS extraction output is mole-fraction based: log$P_{\chi}$ and $\Delta G_{\chi}$.\n\n"
-        "Optional phase-volume correction reports concentration-based log$P_{c}$ and $\Delta G_{c}$."
+        r"Native ATLAS extraction output is mole-fraction based: log$P_{\chi}$ and $\Delta G_{\chi}$.\n\n"
+        r"Optional phase-volume correction reports concentration-based log$P_{c}$ and $\Delta G_{c}$."
     )
 
     c1, c2, c3, c4 = st.columns(4)
@@ -906,9 +906,9 @@ with tab5:
     ext_volume_model = st.radio(
         "Phase-volume model",
         [
-            "None: report native mole-fraction log$P_{\chi}$ only",
-            "Direct volume quotient $V_{target}$ / $V_{source}$",
-            "Effective molar volumes"
+            r"None: report native mole-fraction log$P_{\chi}$ only",
+            r"Direct volume quotient $V_{target}$ / $V_{source}$",
+            r"Effective molar volumes"
         ],
         horizontal=False,
         key="ext_volume_model"
