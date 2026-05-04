@@ -498,8 +498,7 @@ with tab3:
 with tab4:
     st.markdown("Calculate partition coefficients and transfer free energies.")
     st.caption(
-        r"Native ATLAS output is mole-fraction based: log$P_{\chi}$ and $\Delta G_{\chi}$.\n\n"
-        r"Optional phase-volume correction reports concentration-based log$P_{c}$ and $\Delta G_{c}$."
+        "Native ATLAS output is mole-fraction based: log$P_{\chi}$ and $\Delta G_{\chi}$.  \nOptional phase-volume correction reports concentration-based log$P_{c}$ and $\Delta G_{c}$."
     )
 
     c1, c2, c3 = st.columns(3)
@@ -880,8 +879,7 @@ with tab4:
 with tab5:
     st.markdown("Calculate transfer/extraction thermodynamics from a source phase into a mixed target phase.")
     st.caption(
-        r"Native ATLAS extraction output is mole-fraction based: log$P_{\chi}$ and $\Delta G_{\chi}$.\n\n"
-        r"Optional phase-volume correction reports concentration-based log$P_{c}$ and $\Delta G_{c}$."
+        "Native ATLAS extraction output is mole-fraction based: log$P_{\chi}$ and $\Delta G_{\chi}$.  \nOptional phase-volume correction reports concentration-based log$P_{c}$ and $\Delta G_{c}$."
     )
 
     c1, c2, c3, c4 = st.columns(4)
