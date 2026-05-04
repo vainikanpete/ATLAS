@@ -4,7 +4,20 @@
 **Author:** Petteri Vainikka, PhD  
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18826724.svg)](https://doi.org/10.5281/zenodo.18826724)
 
-**ATLAS** is a high-performance computational suite for evaluating complex thermodynamic phase equilibria, solubility limits, molecular screening-charge descriptors, partitioning, and mixed-phase transfer/extraction efficiencies. Built as a specialized routing engine on top of the Conductor-like Screening Model for Real Solvents (COSMO-RS), ATLAS translates molecular-level screening charge densities ($\sigma$-profiles) directly into macroscopic thermodynamic properties.
+## What is ATLAS?
+
+ATLAS is a free open-source GUI and command-line tool for using ORCA `.orcacosmo`
+files in COSMO-RS-style screening workflows.
+
+It currently supports:
+- DES binary and ternary SLE phase diagrams
+- solubility prediction
+- logP and partition coefficients
+- partitioning into mixed phases
+- extraction screening
+- sigma-profile fingerprints
+- 3D sigma maps
+- batch runs with clean CSV output
 
 Version **1.1.2** updates the COSMO-RS backend to the `openCOSMORS24a` parameterization, extends partition and extraction calculations with optional concentration-basis volume corrections, restores the command-line extraction controller, and expands the Streamlit interface with a dedicated mixed-phase extraction tab.
 
@@ -119,6 +132,22 @@ ATLAS/
     ├── h2o_c000.orcacosmo    # .orcacosmo quantum screening profiles
     └── ...                   # Molecular screening-profile database
 ```
+
+---
+
+## Example Outputs
+
+From molecular fingerprints to macroscopic phase diagrams, ATLAS natively visualizes the output of every thermodynamic module.
+
+| Binary Solid-Liquid Equilibrium | Ternary Phase Contours |
+| :---: | :---: |
+| <img src="assets/examples/binary.png" alt="Binary Phase Diagram" width="400"/> | <img src="assets/examples/ternary.png" alt="Ternary Phase Diagram" width="400"/> |
+| **Solubility in Mixed Solvents** | **Partition Thermodynamics (logP)** |
+| <img src="assets/examples/solubility.png" alt="Solubility Curve" width="400"/> | <img src="assets/examples/logp.png" alt="logP and Transfer" width="400"/> |
+| **Mixed-Phase Extraction (DES)** | **3D Thermodynamic $\sigma$-Maps** |
+| <img src="assets/examples/extraction.png" alt="DES Extraction" width="400"/> | <img src="assets/examples/sigma_map.png" alt="3D Sigma Map" width="400"/> |
+| **$\sigma$-Profile Fingerprints** | **ASIS Molecular Matching** |
+| <img src="assets/examples/sigma_fp.png" alt="Sigma Fingerprint" width="400"/> | <img src="assets/examples/asis.png" alt="ASIS Similarity Match" width="400"/> |
 
 ---
 
